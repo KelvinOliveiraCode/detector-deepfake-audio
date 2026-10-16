@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "detector-deepfake-audio"
+version = "0.1.0"
+description = "Detecção de voz sintética (deepfake de áudio) com MFCC + scikit-learn"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{name = "Kelvin Oliveira"}]
+license = {text = "MIT"}
+dependencies = [
+    "librosa>=0.10.0",
+    "scikit-learn>=1.3.0",
+    "numpy>=1.24.0",
+]
+
+[project.scripts]
+detector-deepfake-audio = "detector_deepfake_audio.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
