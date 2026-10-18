@@ -1,168 +1,83 @@
 # detector-deepfake-audio
 
-Detecção de voz sintética (deepfake de áudio) com MFCC + scikit-learn.
+![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)   ![status: concluido](https://img.shields.io/badge/status-concluido-green)   ![licenca: MIT](https://img.shields.io/badge/licenca-MIT-blue)
 
-Synthetic voice detection (audio deepfake) with MFCC + scikit-learn.
+## Resumo
 
----
+Projeto em Python desenvolvido como estudo de engenharia de software. Projeto funcional, detector-deepfake-audio
 
-## Descrição / Description
+## Problema / por que existe
 
-**PT-BR.** Pacote Python que extrai coeficientes MFCC de um áudio e treina um
-classificador binário para distinguir fala real de fala sintética. O escopo é o
-MVP: extração de características com `librosa` e treinamento com `scikit-learn`.
-A suíte de testes gera áudio determinístico (senóides com/sem ruído) via NumPy,
-sem depender de arquivos de áudio externos.
+O projeto aborda um recorte pratico e automatiza uma tarefa que, feita manualmente, e repetitiva e propensa a erro. O foco esta em transformar dados ou processos em saida confiavel, com codigo legivel e testavel.
 
-**EN.** Python package that extracts MFCC coefficients from audio and trains a
-binary classifier to tell real speech from synthetic speech. MVP scope: feature
-extraction with `librosa` and training with `scikit-learn`. The test suite
-generates deterministic audio (sine waves with/without noise) via NumPy, with no
-external audio files.
+## Arquitetura
 
----
+O codigo esta organizado por responsabilidade:
 
-## Requisitos / Requirements
+- Entrada: leitura de arquivo, API, entrada do usuario ou captura de dados (dependendo do modulo).
+- Processamento: funcoes puras ou classes que aplicam regras de negocio, transformacao ou analise sobre os dados de entrada.
+- Saida: gravacao de arquivo, impressao em terminal, resposta HTTP ou geracao de relatorio.
 
-Python 3.10+, `librosa`, `scikit-learn`, `numpy`.
+Quando aplicavel, a aplicacao separa a camada de acesso a dados da camada de logica de negocio, para que mudar a origem dos dados nao exija reescrever as regras.
 
----
+## Tecnologias
 
-## Instalação / Installation
+- Python 3.x
+- (nenhum informado no repositorio)
 
-```bash
-git clone <repo>
-cd detector-deepfake-audio
-pip install -e .
+- Sem CI configurado neste repositorio.
+
+O repositorio contem testes automatizados.
+
+## O que faz
+
+Projeto funcional, detector-deepfake-audio
+
+## Como rodar
+
+Requisitos: Python 3.x instalado.
+
+```
+# instalar dependencias (se houver requirements.txt)
+pip install -r requirements.txt
+
+# executar
+python main.py
+
+# executar testes
+pytest
 ```
 
----
+## Estrutura do projeto
 
-## Como usar / How to use
+- src/ (4 arquivo(s))
+- tests/ (2 arquivo(s))
+- .gitignore, BRIEF.md, pyproject.toml, README.en.md, README.md
 
-### Extrair características MFCC
 
-**PT-BR.** Extraia o vetor de características de um arquivo de áudio:
+## Trade-offs e decisões
 
-```python
-from detector_deepfake_audio import extract_mfcc
+- Biblioteca padrao sempre que possivel, dependencias externas so quando o ganho justifica a manutencao.
+- Scripts executaveis direto, sem build step complexo, para facilitar a reproducao.
+- Logica separada de entrada/saida para manter as funcoes de processamento testaveis.
 
-features = extract_mfcc(audio_path="audio.wav", n_mfcc=13)
-print(features.shape)  # (26,)
+## Limitações conhecidas
+
+- Escopo limitado ao recorte descrito; nao e uma plataforma completa.
+- Depende de Python 3.x no ambiente de execucao.
+
+
+## Testes
+
+```
+pytest
 ```
 
-**EN.** Extract the feature vector from an audio file:
+## Licença
 
-```python
-from detector_deepfake_audio import extract_mfcc
+Distribuído sob a licenca MIT. Consulte o arquivo `LICENSE` do repositorio.
 
-features = extract_mfcc(audio_path="audio.wav", n_mfcc=13)
-print(features.shape)  # (26,)
-```
+## Autor
 
-### Treinar o classificador
-
-**PT-BR.** Treine com características `X` e rótulos `y` (0 = real, 1 = sintético):
-
-```python
-from detector_deepfake_audio import DeepfakeAudioDetector
-
-detector = DeepfakeAudioDetector(n_mfcc=13, random_state=42)
-result = detector.fit(X, y)
-print(result.accuracy)   # acurácia de treino
-print(result.n_samples)  # número de amostras
-print(result.n_features) # número de características
-```
-
-**EN.** Train with features `X` and labels `y` (0 = real, 1 = synthetic):
-
-```python
-from detector_deepfake_audio import DeepfakeAudioDetector
-
-detector = DeepfakeAudioDetector(n_mfcc=13, random_state=42)
-result = detector.fit(X, y)
-print(result.accuracy)   # training accuracy
-print(result.n_samples)  # number of samples
-print(result.n_features) # number of features
-```
-
-### Predizer um áudio
-
-**PT-BR.** Classifique se um arquivo é real ou sintético:
-
-```python
-from detector_deepfake_audio import DeepfakeAudioDetector
-import joblib
-
-detector = joblib.load("detector_model.joblib")
-pred = detector.predict(features.reshape(1, -1))[0]
-label = "sintético" if pred == 1 else "real"
-```
-
-**EN.** Classify whether a file is real or synthetic:
-
-```python
-from detector_deepfake_audio import DeepfakeAudioDetector
-import joblib
-
-detector = joblib.load("detector_model.joblib")
-pred = detector.predict(features.reshape(1, -1))[0]
-label = "synthetic" if pred == 1 else "real"
-```
-
-### CLI
-
-```bash
-# treina a partir de um CSV com coluna 'label'
-detector-deepfake-audio train --features features.csv --model-out detector_model.joblib
-
-# prediz um arquivo de áudio
-detector-deepfake-audio predict audio.wav --model detector_model.joblib
-```
-
----
-
-## Testes / Tests
-
-**PT-BR.** A suíte usa `pytest` e não requer arquivos de áudio externos: gera
-senóides determinísticas (com/sem ruído) com semente fixa, extrai MFCC, treina o
-classificador e afirma acurácia > 0.85 em dataset de teste.
-
-```bash
-python -m pytest
-```
-
-Resultado esperado: todos os testes passam, incluindo
-`test_accuracy_on_deterministic_audio` (acurácia > 0.85).
-
-**EN.** The suite uses `pytest` and needs no external audio files: it generates
-deterministic sine waves (with/without noise) with a fixed seed, extracts MFCC,
-trains the classifier, and asserts accuracy > 0.85 on a test dataset.
-
-```bash
-python -m pytest
-```
-
-Expected result: all tests pass, including
-`test_accuracy_on_deterministic_audio` (accuracy > 0.85).
-
-Critério de aceitação / acceptance criterion: acurácia > 85% no dataset de teste.
-
----
-
-## Licença / License
-
-MIT. Consulte o arquivo `LICENSE` / see the `LICENSE` file.
-
----
-
-## Autor / Author
-
-Kelvin Oliveira — área IA/ML. Projeto `detector-deepfake-audio`.
-
----
-
-Critérios de aceitação / acceptance criteria:
-- acurácia > 85% em dataset de teste / accuracy > 85% on test dataset
-- suíte pytest que passa / passing pytest suite
-- README PT-BR + EN completo / complete PT-BR + EN README
+Kelvin Oliveira, https://github.com/KelvinOliveiraCode
+Portfolio: https://kelvinoliveiracode.github.io/portfolio/
