@@ -1,118 +1,94 @@
 # detector-deepfake-audio
 
-<div align="center">
-
 [English](README.en.md) · **Português (Brasil)**
 
-</div>
-
-[![Python 3](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/) [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn)](https://scikit-learn.org/) [![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas)](https://pandas.pydata.org/) [![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest)](https://docs.pytest.org/) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
-
-### Projeto funcional ,  detector-deepfake-audio
-
----
+[![Python 3](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](#) [![librosa](https://img.shields.io/badge/librosa-0.10%2B-3776AB?style=flat-square)](#) [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=flat-square&logo=scikit-learn)](#) [![pytest](https://img.shields.io/badge/pytest-13%20testes-0A9EDC?style=flat-square&logo=pytest)](#) [![MIT License](https://img.shields.io/badge/License-MIT-f4c430?style=flat-square)](LICENSE)
 
 ## O que é
 
-Projeto funcional ,  detector-deepfake-audio
+**Detector de áudio deepfake (linha de base)**: extrai características **MFCC** de um sinal de áudio (via **librosa**), treina um classificador **LogisticRegression** (via scikit-learn) e prediz se um áudio é **real ou sintético**. A extração produz um vetor de tamanho fixo (`2 × n_mfcc`: média + desvio padrão dos coeficientes), independente da duração. É um laboratório educacional de ML aplicado a áudio.
 
----
+## Status
 
-## Início Rápido
+Laboratório educacional funcional e testado (13 testes).
 
-```bash
-# Clone e entre
-git clone https://github.com/KelvinOliveiraCode/<repo>.git
-cd <repo>
+## Funcionalidades
 
-# Instale dependências
-# Nenhum requirements.txt detectado
+- **Extração de características** (`features.py`): `extract_mfcc` e `extract_features_from_signal` — MFCC com `n_mfcc=13`, `n_fft=2048`, `hop_length=512`; vetor fixo de `2 × n_mfcc`.
+- **Modelo** (`model.py`): `DeepfakeAudioDetector` — pipeline de características + `LogisticRegression` (`random_state=42`); `TrainResult` com acurácia de treino.
+- **CLI** (`cli.py`) com dois subcomandos:
+  - `detector-deepfake-audio train --features <csv> [--model-out <pkl>]`
+  - `detector-deepfake-audio predict <audio> --model <pkl>`
 
-# Execute o projeto
-python main.py
+## Arquitetura
 
-# Execute os testes
-pytest
+Pacote `detector_deepfake_audio` com `features` (librosa/MFCC), `model` (pipeline sklearn) e `cli` (treino/predição). O treino consome um CSV de características; a predição extrai os MFCC do áudio e aplica o modelo.
+
+```mermaid
+flowchart LR
+    AUD[áudio] --> MFCC[features - MFCC 2xn_mfcc]
+    CSV[features.csv] --> TR[train - LogisticRegression]
+    TR --> PKL[modelo .pkl]
+    MFCC --> PR[predict - real vs sintético]
+    PKL --> PR
+    CLI[detector-deepfake-audio train/predict] --> MFCC & TR
 ```
 
-## Como funciona
+## Stack
 
-Estrutura limpa e modular com separação de responsabilidades.
+- Python ≥ 3.10
+- librosa ≥ 0.10, scikit-learn ≥ 1.3, numpy ≥ 1.24
+- pytest (dev)
 
----
+## Estrutura do repositório
 
-## Capacidades
+```
+detector-deepfake-audio/
+├── pyproject.toml · BRIEF.md
+├── src/detector_deepfake_audio/
+│   ├── features.py   # MFCC (librosa)
+│   ├── model.py      # LogisticRegression pipeline
+│   └── cli.py        # train / predict
+├── tests/            # 13 testes
+└── LICENSE           # MIT
+```
 
-| Capacidade | Descrição |
-|------------|-------------|
-| Carregamento de Dados | Auto-download do TensorFlow creditcard.csv (284k transações) com cache local |
-| EDA e Visualização | Distribuição de classes, histogramas de Amount, heatmaps de correlação (matplotlib/seaborn) |
-| Pré-processamento | RobustScaler em Amount/Time, split estratificado, remoção de duplicatas |
-| Balanceamento | SMOTE oversampling (fallback: class_weight="balanced") |
-| Modelagem | LogisticRegression, RandomForest, ExtraTrees com RandomizedSearchCV (StratifiedKFold) |
-| Métricas | Accuracy, Precision, Recall, F1, ROC AUC, Specificity, Confusion Matrix |
-| Seleção | Score ponderado: Recall 40% + F1 30% + Precision 20% + Accuracy 10% |
-| Persistência | Serialização joblib para modelo, scaler e resultados completos |
+## Pré-requisitos e instalação
 
+```bash
+pip install -e .
+```
 
----
+## Como executar
 
+```bash
+detector-deepfake-audio train --features features.csv --model-out modelo.pkl
+detector-deepfake-audio predict amostra.wav --model modelo.pkl
+```
 
+## Testes e qualidade
 
----
+Comando real (verificado pelo agente):
 
-## Perguntas Frequentes
+```bash
+PYTHONPATH=src python -m pytest tests/
+# 13 passed
+```
 
-<details>
-<summary><strong>O que é este projeto?</strong></summary>
+## Decisões técnicas e trade-offs
 
-Um estudo/projeto em Python demonstrando conceitos fundamentais.
+- **MFCC + LogisticRegression como linha de base**: simples, rápido e interpretável; modelos neurais (RawNet, AASIST) superam essa baseline mas exigem muito mais dados/computação.
+- **Vetor de tamanho fixo (média+desvio dos MFCC)**: independente da duração do áudio, o que simplifica o treino.
 
-</details>
+## Limitações conhecidas e roadmap
 
-<details>
-<summary><strong>Como executar?</strong></summary>
+- Linha de base educacional — não compete com detectores de deepfake de produção (ASVspoof).
+- Treino via CSV de características; sem dataset embutido de áudio real/sintético.
 
-Veja [Início Rápido](#início-rápido) para comandos copiáveis.
+## Processo de desenvolvimento
 
-</details>
+Projeto individual de Kelvin Oliveira, construído com agentes de IA orquestrados e revisado pelo autor.
 
-<details>
-<summary><strong>Há testes?</strong></summary>
+## Licença e autor
 
-Nenhum teste automatizado neste repositório.
-
-</details>
-
-<details>
-<summary><strong>Posso usar em produção?</strong></summary>
-
-Este é um **projeto de estudo/portfólio**. Revise e endureça (auth, persistência, monitoramento, etc.) antes de usar em produção.
-
-</details>
-
-
-
----
-
-## Documentação
-
-- **Código-Fonte** ,  Navegue pelo diretório `src/` para detalhes de implementação
-- **Referência da API** ,  Docstrings inline + type hints
-- **Diagrama de Arquitetura** ,  Veja [architecture.mermaid](docs/architecture.mermaid) (se presente)
-- **Changelog** ,  [CHANGELOG.md](CHANGELOG.md) (se presente)
-- **Contribuindo** ,  [CONTRIBUTING.md](CONTRIBUTING.md) (se presente)
-
-## Licença
-
-[MIT](LICENSE) ,  Kelvin Oliveira
-
----
-
-<div align="center">
-
-**Construído com** · Python 3 + scikit-learn + pandas
-
-**Autor** · [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfolio](https://kelvinoliveiracode.github.io/portfolio/)
-
-</div>
+MIT — Copyright (c) 2026 Kelvin Rebelo de Oliveira. Autor: [Kelvin Oliveira](https://github.com/KelvinOliveiraCode) · [Portfólio](https://kelvinoliveiracode.github.io/portfolio/)
